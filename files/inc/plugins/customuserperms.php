@@ -30,8 +30,6 @@ $plugins->add_hook("admin_user_menu", "customuserperms_admin_user_menu");
 $plugins->add_hook("admin_user_action_handler", "customuserperms_admin_user_action_handler");
 $plugins->add_hook("admin_user_permissions", "customuserperms_admin_user_permissions");
 
-$plugins->add_hook("global_start", "forums_test");
-
 function customuserperms_info()
 {
 	return array(
