@@ -31,36 +31,6 @@ $plugins->add_hook("admin_user_action_handler", "customuserperms_admin_user_acti
 $plugins->add_hook("admin_user_permissions", "customuserperms_admin_user_permissions");
 
 $plugins->add_hook("global_start", "forums_test");
-function forums_test()
-{
-	global $mybb, $cache, $cached_forum_permissions, $cached_forum_permissions_permissions;
-	
-	$forums = $cache->read("forums");
-	if($mybb->user['uid'] != 0)
-	{
-		$gid = $mybb->user['usergroup'].",".$mybb->user['additionalgroups'];
-	}
-	else
-	{
-		$gid = 1;
-	}
-	
-	foreach($forums as $fid => $forum)
-	{
-		forum_permissions();
-		forum_permissions($fid);
-		//print_r($cached_forum_permissions[$gid][$fid]);echo $forum['name'];
-		if(!isset($cached_forum_permissions[$gid][$fid]['canview']))
-		{
-			$cached_forum_permissions[$gid][$fid]['canview'] = 0;
-		}
-		//print_r($cached_forum_permissions_permissions[$gid][$fid]);echo $forum['name'];
-		if(!isset($cached_forum_permissions_permissions[$gid][$fid]['canview']))
-		{
-			$cached_forum_permissions_permissions[$gid][$fid]['canview'] = 0;
-		}
-	}
-}
 
 function customuserperms_info()
 {
