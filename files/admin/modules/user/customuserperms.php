@@ -1,8 +1,8 @@
 <?php
 /**
- * Custom User Permissions 0.2.2 - Admin File
+ * Custom User Permissions 1.0 - Admin File
 
- * Copyright 2010 Matthew Rogowski
+ * Copyright 2014 Matthew Rogowski
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,28 +126,35 @@ elseif($mybb->input['action'] == "edit")
 		'link' => "index.php?module=user-customuserperms&amp;action=edit&amp;do=forums&amp;cupid={$cupid}",
 		'description' => $lang->customuserperms_edit_specific_forums_nav
 	);
-	
-	$set_all_js = "<script type=\"text/javascript\">
-	document.observe(\"dom:loaded\", function() {
-		$('set_all_inherit').observe('click', function() {
-			set_all('-1');
+
+	if(substr($mybb->version, 0, 3) == '1.6')
+	{
+		$set_all_js = "<script type=\"text/javascript\">
+		document.observe(\"dom:loaded\", function() {
+			$('content').on('click', '.set_all', function(Event) {
+				value = Event.target.readAttribute('data-value');
+
+				$$('input').each(function(input) {
+					input.checked = false;
+				});
+				$$('input[value='+value+']').each(function(input) {
+					input.checked = true;
+				});
+			});
 		});
-		$('set_all_yes').observe('click', function() {
-			set_all('1');
-		});
-		$('set_all_no').observe('click', function() {
-			set_all('0');
-		});
-	});
-	function set_all(what) {
-		$$('input').each(function(input) {
-			input.checked = false;
-		});
-		$$('input[value='+what+']').each(function(input) {
-			input.checked = true;
-		});
+		</script>";
 	}
-	</script>";
+	elseif(substr($mybb->version, 0, 3) == '1.8')
+	{
+		$set_all_js = "<script type=\"text/javascript\">
+		jQuery(document).ready(function() {
+			jQuery('.set_all').click(function() {
+				jQuery('input[type=\"radio\"][name^=\"perms\"]').prop('checked', false);
+				jQuery('input[type=\"radio\"][name^=\"perms\"][value=\"'+jQuery(this).data('value')+'\"]').prop('checked', true);
+			});
+		});
+		</script>";
+	}
 	
 	if($mybb->input['do'] == "forums")
 	{
@@ -792,10 +799,62 @@ else
 	$form = new Form("index.php?module=user-customuserperms&amp;action=do_add_user", "post");
 	$form_container = new FormContainer($lang->customuserperms_add_user);
 	
-	$customuserperms_add_user_name = $form->generate_text_box("username");
+	$customuserperms_add_user_name = $form->generate_text_box("username", '', array('id' => 'username'));
 	$form_container->output_row($lang->username . " <em>*</em>", '', $customuserperms_add_user_name);
 	
 	$form_container->end();
+
+	// Autocompletion for usernames
+	if(substr($mybb->version, 0, 3) == '1.6')
+	{
+		echo '
+		<script type="text/javascript" src="../jscripts/autocomplete.js?ver=140"></script>
+		<script type="text/javascript">
+		<!--
+			new autoComplete("username", "../xmlhttp.php?action=get_users", {valueSpan: "username"});
+		// -->
+		</script>';
+	}
+	elseif(substr($mybb->version, 0, 3) == '1.8')
+	{
+		echo '
+		<link rel="stylesheet" href="../jscripts/select2/select2.css">
+		<script type="text/javascript" src="../jscripts/select2/select2.min.js"></script>
+		<script type="text/javascript">
+		<!--
+		$("#username").select2({
+			placeholder: "Search for a user",
+			minimumInputLength: 3,
+			maximumSelectionSize: 3,
+			multiple: false,
+			ajax: { // instead of writing the function to execute the request we use Select2\'s convenient helper
+				url: "../xmlhttp.php?action=get_users",
+				dataType: \'json\',
+				data: function (term, page) {
+					return {
+						query: term // search term
+					};
+				},
+				results: function (data, page) { // parse the results into the format expected by Select2.
+					// since we are using custom formatting functions we do not need to alter remote JSON data
+					return {results: data};
+				}
+			},
+			initSelection: function(element, callback) {
+				var query = $(element).val();
+				if (query !== "") {
+					$.ajax("../xmlhttp.php?action=get_users&getone=1", {
+						data: {
+							query: query
+						},
+						dataType: "json"
+					}).done(function(data) { callback(data); });
+				}
+			}
+		});
+		// -->
+		</script>';
+	}
 	
 	$buttons[] = $form->generate_submit_button($lang->submit);
 	$form->output_submit_wrapper($buttons);
@@ -904,9 +963,9 @@ function generate_permissions($permissions, $user_perms)
 		if($done_groups == 0)
 		{
 			$form_container->output_cell("<strong>" . $lang->$group . "</strong>");
-			$form_container->output_cell("<a href='javascript:void(0)' class='set_all' id='set_all_inherit'>" . $lang->inherit_all . "</a>", array('style' => 'text-align: center;'));
-			$form_container->output_cell("<a href='javascript:void(0)' class='set_all' id='set_all_yes'>" . $lang->yes_all . "</a>", array('style' => 'text-align: center;'));
-			$form_container->output_cell("<a href='javascript:void(0)' class='set_all' id='set_all_no'>" . $lang->no_all . "</a>", array('style' => 'text-align: center;'));
+			$form_container->output_cell("<a href='javascript:void(0)' class='set_all' data-value='-1'>" . $lang->inherit_all . "</a>", array('style' => 'text-align: center;'));
+			$form_container->output_cell("<a href='javascript:void(0)' class='set_all' data-value='1'>" . $lang->yes_all . "</a>", array('style' => 'text-align: center;'));
+			$form_container->output_cell("<a href='javascript:void(0)' class='set_all' data-value='0'>" . $lang->no_all . "</a>", array('style' => 'text-align: center;'));
 			$form_container->construct_row();
 		}
 		else
