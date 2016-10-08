@@ -1,8 +1,8 @@
 <?php
 /**
- * Custom User Permissions 1.0
+ * Custom User Permissions 1.0.0
 
- * Copyright 2014 Matthew Rogowski
+ * Copyright 2016 Matthew Rogowski
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,10 @@ function customuserperms_info()
 		'description' => 'Apply permissions to specific users instead of just usergroups.',
 		'website' => 'https://github.com/MattRogowski/Custom-User-Permissions',
 		'author' => 'Matt Rogowski',
-		'authorsite' => 'http://mattrogowski.co.uk',
-		'version' => '1.0',
+		'authorsite' => 'https://matt.rogow.ski',
+		'version' => '1.0.0',
 		'compatibility' => '16*,18*',
-		'guid' => 'ddb7c7d4833f3ba2cb91c2bc1d8f4c73'
+		'codename' => 'customuserperms'
 	);
 }
 
