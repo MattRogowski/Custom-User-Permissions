@@ -1,8 +1,8 @@
 <?php
 /**
- * Custom User Permissions 1.0.0
+ * Custom User Permissions 1.0.1
 
- * Copyright 2016 Matthew Rogowski
+ * Copyright 2017 Matthew Rogowski
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ function customuserperms_info()
 		'website' => 'https://github.com/MattRogowski/Custom-User-Permissions',
 		'author' => 'Matt Rogowski',
 		'authorsite' => 'https://matt.rogow.ski',
-		'version' => '1.0.0',
+		'version' => '1.0.1',
 		'compatibility' => '16*,18*',
 		'codename' => 'customuserperms'
 	);
@@ -47,16 +47,16 @@ function customuserperms_info()
 function customuserperms_install()
 {
 	global $db, $customuserperms_uninstall_confirm_override;
-	
+
 	// this is so we override the confirmation when trying to uninstall, so we can just run the uninstall code
 	$customuserperms_uninstall_confirm_override = true;
 	customuserperms_uninstall();
-	
+
 	if(!$db->field_exists("hascustomperms", "users"))
 	{
 		$db->add_column("users", "hascustomperms", "INT (1) NOT NULL DEFAULT 0");
 	}
-	
+
 	if(!$db->table_exists("customuserperms"))
 	{
 		$db->write_query("
@@ -68,21 +68,21 @@ function customuserperms_install()
 			) ENGINE = MYISAM ;
 		");
 	}
-	
+
 	change_admin_permission("user", "customuserperms", 1);
 }
 
 function customuserperms_is_installed()
 {
 	global $db;
-	
+
 	return $db->table_exists("customuserperms");
 }
 
 function customuserperms_uninstall()
 {
 	global $mybb, $db, $customuserperms_uninstall_confirm_override;
-	
+
 	// this is a check to make sure we want to uninstall
 	// if 'No' was chosen on the confirmation screen, redirect back to the plugins page
 	if($mybb->input['no'])
@@ -99,7 +99,7 @@ function customuserperms_uninstall()
 			{
 				$db->drop_column("users", "hascustomperms");
 			}
-			
+
 			if($db->table_exists("customuserperms"))
 			{
 				$db->drop_table("customuserperms");
@@ -109,16 +109,16 @@ function customuserperms_uninstall()
 		else
 		{
 			global $lang, $page;
-			
+
 			$lang->load("user_customuserperms");
-			
+
 			$query = $db->simple_select("customuserperms", "COUNT(*) AS custompermusers");
 			$custompermusers = $db->fetch_field($query, "custompermusers");
 			if($custompermusers > 0)
 			{
 				$lang->customuserperms_uninstall_warning .= " " . $lang->sprintf($lang->customuserperms_uninstall_warning_count, $custompermusers);
 			}
-			
+
 			$page->output_confirm_action("index.php?module=config-plugins&action=deactivate&uninstall=1&plugin=customuserperms&my_post_key={$mybb->post_code}", $lang->customuserperms_uninstall_warning);
 		}
 	}
@@ -126,25 +126,25 @@ function customuserperms_uninstall()
 
 function customuserperms_activate()
 {
-	
+
 }
 
 function customuserperms_deactivate()
 {
-	
+
 }
 
 function customuserperms_load()
 {
 	global $mybb;
-	
+
 	if($mybb->user['hascustomperms'] != 1)
 	{
 		return;
 	}
-	
+
 	global $db, $cache, $cached_forum_permissions, $cached_forum_permissions_permissions;
-	
+
 	$query = $db->simple_select("customuserperms", "customperms", "uid = '" . intval($mybb->user['uid']) . "' AND active = '1'");
 	if($db->num_rows($query) != 1)
 	{
@@ -152,7 +152,7 @@ function customuserperms_load()
 	}
 	$customperms = $db->fetch_field($query, "customperms");
 	$customperms = unserialize($customperms);
-	
+
 	if(!empty($customperms['general']))
 	{
 		foreach($customperms['general'] as $perm => $value)
@@ -179,7 +179,7 @@ function customuserperms_load()
 	{
 		$gid = $mybb->user['usergroup'] . "," . $mybb->user['additionalgroups'];
 		$forums = $cache->read("forums");
-		
+
 		// load the global forum permissions
 		forum_permissions();
 		// set the global forum permissions first
@@ -212,7 +212,7 @@ function customuserperms_load()
 					$forums_list[] = $fid;
 				}
 			}
-			
+
 			foreach($forums_list as $forum)
 			{
 				// load the specific forum permissions
@@ -232,11 +232,11 @@ function customuserperms_load()
 function customuserperms_admin_user_menu($sub_menu)
 {
 	global $lang;
-	
+
 	$lang->load("user_customuserperms");
-	
+
 	$sub_menu[] = array("id" => "customuserperms", "title" => $lang->customuserperms, "link" => "index.php?module=user-customuserperms");
-	
+
 	return $sub_menu;
 }
 
@@ -246,18 +246,18 @@ function customuserperms_admin_user_action_handler($actions)
 		"active" => "customuserperms",
 		"file" => "customuserperms.php"
 	);
-	
+
 	return $actions;
 }
 
 function customuserperms_admin_user_permissions($admin_permissions)
 {
 	global $lang;
-	
+
 	$lang->load("user_customuserperms");
-	
+
 	$admin_permissions['customuserperms'] = $lang->can_manage_customuserperms;
-	
+
 	return $admin_permissions;
 }
 ?>

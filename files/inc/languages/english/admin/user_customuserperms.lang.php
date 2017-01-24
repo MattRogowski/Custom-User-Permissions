@@ -1,8 +1,8 @@
 <?php
 /**
- * Custom User Permissions 1.0.0 - Admin Language File
+ * Custom User Permissions 1.0.1 - Admin Language File
 
- * Copyright 2016 Matthew Rogowski
+ * Copyright 2017 Matthew Rogowski
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 $l['customuserperms'] = "Custom User Permissions";
 
-$l['can_manage_customuserperms'] = "Can Manage Custom User Permissions??";
+$l['can_manage_customuserperms'] = "Can manage Custom User Permissions??";
 
 $l['customuserperms_nav'] = "An overview of all current custom user permissions.";
 $l['customuserperms_current'] = "Current Custom User Permissions";
