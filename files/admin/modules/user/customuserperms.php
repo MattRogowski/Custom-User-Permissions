@@ -32,20 +32,20 @@ if($mybb->input['action'] == "do_edit")
 		flash_message($lang->invalid_post_verify_key2, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	$cupid = intval($mybb->input['cupid']);
 	$fid = intval($mybb->input['fid']);
-	
+
 	$query = $db->simple_select("customuserperms", "customperms", "cupid = '{$cupid}'");
 	if($db->num_rows($query) == 0)
 	{
 		flash_message($lang->customuserperms_invalid, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	$perms = $db->fetch_field($query, "customperms");
 	$perms = unserialize($perms);
-	
+
 	if($mybb->input['do'] == "do_general")
 	{
 		$perms['general'] = array();
@@ -75,36 +75,36 @@ if($mybb->input['action'] == "do_edit")
 			$fid_url = "&amp;fid=-1";
 		}
 	}
-	
+
 	$perms = serialize($perms);
-	
+
 	$update = array(
 		"customperms" => $db->escape_string($perms)
 	);
 	$db->update_query("customuserperms", $update, "cupid = '{$cupid}'");
-	
+
 	flash_message($lang->customuserperms_updated, 'success');
 	admin_redirect("index.php?module=user-customuserperms&action=edit&do={$do}&cupid={$cupid}{$fid_url}");
 }
 elseif($mybb->input['action'] == "edit")
 {
 	$cupid = intval($mybb->input['cupid']);
-	
+
 	$query = $db->simple_select("customuserperms", "uid, customperms", "cupid = '{$cupid}'");
 	if($db->num_rows($query) == 0)
 	{
 		flash_message($lang->customuserperms_invalid, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	$customuserperms = $db->fetch_array($query);
 	$uid = $customuserperms['uid'];
 	$user = get_user($uid);
 	$username = $user['username'];
 	$user_perms = unserialize($customuserperms['customperms']);
-	
+
 	$page->add_breadcrumb_item($lang->customuserperms_edit, "index.php?module=user-customuserperms&amp;action=edit");
-	
+
 	$sub_tabs = array();
 	$sub_tabs['customuserperms'] = array(
 		'title' => $lang->home,
@@ -155,7 +155,7 @@ elseif($mybb->input['action'] == "edit")
 		});
 		</script>";
 	}
-	
+
 	if($mybb->input['do'] == "forums")
 	{
 		$fid = intval($mybb->input['fid']);
@@ -171,14 +171,14 @@ elseif($mybb->input['action'] == "edit")
 			$page->output_header($lang->customuserperms);
 			$page->output_nav_tabs($sub_tabs, "customuserperms_edit_specific_forums");
 		}
-		
+
 		echo $set_all_js;
-		
+
 		if($fid)
 		{
 			$forums = $cache->read("forums");
 			$forum = $forums[$fid]['name'];
-			
+
 			$permissions = array(
 				"group_viewing" => array(
 					"canview" => array(
@@ -254,9 +254,9 @@ elseif($mybb->input['action'] == "edit")
 					)
 				);
 			}
-			
+
 			$lang->load("forum_management");
-			
+
 			$form = new Form("index.php?module=user-customuserperms&amp;action=do_edit", "post");
 			if($fid == -1)
 			{
@@ -268,15 +268,15 @@ elseif($mybb->input['action'] == "edit")
 			}
 			$form_container->output_row_header($lang->permission, array("class" => "align_center", 'style' => 'width: 30%'));
 			$form_container->output_row_header($lang->controls, array("class" => "align_center", "colspan" => 3));
-			
+
 			generate_permissions($permissions, $user_perms['forums'][$fid]);
-			
+
 			$form_container->end();
-			
+
 			echo $form->generate_hidden_field("cupid", $cupid);
 			echo $form->generate_hidden_field("fid", $fid);
 			echo $form->generate_hidden_field("do", "do_forums");
-			
+
 			$buttons[] = $form->generate_submit_button($lang->submit);
 			$form->output_submit_wrapper($buttons);
 			$form->end();
@@ -294,11 +294,11 @@ elseif($mybb->input['action'] == "edit")
 			if(count($user_perms['forums']) > 0)
 			{
 				$table = new Table;
-				
+
 				$table->construct_header($lang->forum);
 				$table->construct_header($lang->custom_perms_overview);
 				$table->construct_header($lang->controls, array("colspan" => 2, 'class' => 'align_center'));
-				
+
 				$forums = $cache->read("forums");
 				foreach($user_perms['forums'] as $forum => $perms)
 				{
@@ -324,34 +324,34 @@ elseif($mybb->input['action'] == "edit")
 					{
 						$custom_perms_overview = $lang->none;
 					}
-					
+
 					$table->construct_cell($forums[$forum]['name'], array('width' => '20%'));
 					$table->construct_cell($custom_perms_overview, array('width' => '35%'));
 					$table->construct_cell("<a href=\"index.php?module=user-customuserperms&amp;action=edit&amp;do=forums&amp;cupid={$cupid}&amp;fid={$forum}\">{$lang->view_edit}</a>", array('class' => 'align_center', 'width' => '15%'));
 					$table->construct_cell("<a href=\"index.php?module=user-customuserperms&amp;action=delete&amp;cupid={$cupid}&amp;fid={$forum}\">{$lang->delete}</a>", array('class' => 'align_center', 'width' => '15%'));
 					$table->construct_row();
 				}
-				
+
 				$table->output($lang->sprintf($lang->customuserperms_current_forums, $username));
-				
+
 				$forum_names[$forum] = $forums[$forum]['name'];
 			}
-			
+
 			$form = new Form("index.php?module=user-customuserperms&amp;action=do_add_forum", "post");
 			$form_container = new FormContainer($lang->customuserperms_add_forum);
 			$table = new Table;
-			
+
 			$form_container->output_row($lang->customuserperms_choose_forum, "", $form->generate_forum_select('fid', "", array('multiple' => false, 'size' => 5)));
-			
+
 			$form_container->end();
-			
+
 			echo $form->generate_hidden_field("cupid", $cupid);
-			
+
 			$buttons[] = $form->generate_submit_button($lang->submit);
 			$form->output_submit_wrapper($buttons);
 			$form->end();
 		}
-		
+
 		$page->output_footer();
 	}
 	else
@@ -359,9 +359,9 @@ elseif($mybb->input['action'] == "edit")
 		$page->add_breadcrumb_item($lang->customuserperms_edit_general, "index.php?module=user-customuserperms&amp;action=edit&amp;do=do_general");
 		$page->output_header($lang->customuserperms);
 		$page->output_nav_tabs($sub_tabs, "customuserperms_edit_general");
-		
+
 		echo $set_all_js;
-		
+
 		$permissions = array(
 			"viewing_options" => array(
 				"cansearch" => array(
@@ -474,25 +474,25 @@ elseif($mybb->input['action'] == "edit")
 				)
 			)
 		);
-		
+
 		$lang->load("user_groups");
-		
+
 		$form = new Form("index.php?module=user-customuserperms&amp;action=do_edit", "post");
 		$form_container = new FormContainer($lang->sprintf($lang->customuserperms_edit_general_user, $username));
 		$form_container->output_row_header($lang->permission, array("class" => "align_center", 'style' => 'width: 30%'));
 		$form_container->output_row_header($lang->controls, array("class" => "align_center", "colspan" => 3));
-		
+
 		generate_permissions($permissions, $user_perms['general']);
-		
+
 		$form_container->end();
-		
+
 		echo $form->generate_hidden_field("cupid", $cupid);
 		echo $form->generate_hidden_field("do", "do_general");
-		
+
 		$buttons[] = $form->generate_submit_button($lang->submit);
 		$form->output_submit_wrapper($buttons);
 		$form->end();
-		
+
 		$page->output_footer();
 	}
 }
@@ -503,7 +503,7 @@ elseif($mybb->input['action'] == "do_add_user")
 		flash_message($lang->invalid_post_verify_key2, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	if(!username_exists($mybb->input['username']))
 	{
 		flash_message($lang->customuserperms_invalid_username, 'error');
@@ -513,50 +513,50 @@ elseif($mybb->input['action'] == "do_add_user")
 	{
 		$query = $db->simple_select("users", "uid, hascustomperms", "username = '" . $db->escape_string($mybb->input['username']) . "'", array("limit" => 1));
 		$user = $db->fetch_array($query);
-		
+
 		if($user['hascustomperms'] == 1)
 		{
 			flash_message($lang->customuserperms_duplicate_user, 'error');
 			admin_redirect("index.php?module=user-customuserperms");
 		}
-		
+
 		$insert = array(
 			"uid" => intval($user['uid']),
 			"active" => 1
 		);
 		$db->insert_query("customuserperms", $insert);
-		
+
 		$update = array(
 			"hascustomperms" => 1
 		);
 		$db->update_query("users", $update, "uid = '" . intval($user['uid']) . "'");
-		
+
 		flash_message($lang->customuserperms_user_added, 'success');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
 }
-elseif($mybb->input['action'] =="do_add_forum")
+elseif($mybb->input['action'] == "do_add_forum")
 {
 	if(!verify_post_check($mybb->input['my_post_key']))
 	{
 		flash_message($lang->invalid_post_verify_key2, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	$fid = intval($mybb->input['fid']);
 	$cupid = intval($mybb->input['cupid']);
-	
+
 	$forums = $cache->read("forums");
 	if(!$forums[$fid])
 	{
 		flash_message($lang->customuserperms_invalid_forum, 'error');
 		admin_redirect("index.php?module=user-customuserperms&action=edit&do=forums&cupid={$cupid}");
 	}
-	
+
 	$query = $db->simple_select("customuserperms", "customperms", "cupid = '{$cupid}'");
 	$customperms = $db->fetch_field($query, "customperms");
 	$customperms = unserialize($customperms);
-	
+
 	if(is_array($customperms['forums'][$fid]))
 	{
 		flash_message($lang->customuserperms_duplicate_forum, 'error');
@@ -567,12 +567,12 @@ elseif($mybb->input['action'] =="do_add_forum")
 		$customperms['forums'][$fid] = array();
 		$customperms['forums'] = reorder_forums($customperms['forums']);
 		$customperms = serialize($customperms);
-		
+
 		$update = array(
 			"customperms" => $db->escape_string($customperms)
 		);
 		$db->update_query("customuserperms", $update, "cupid = '{$cupid}'");
-		
+
 		flash_message($lang->customuserperms_forum_added, 'success');
 		admin_redirect("index.php?module=user-customuserperms&action=edit&do=forums&cupid={$cupid}");
 	}
@@ -581,7 +581,7 @@ elseif($mybb->input['action'] == "do_delete")
 {
 	$cupid = intval($mybb->input['cupid']);
 	$fid = intval($mybb->input['fid']);
-	
+
 	if($mybb->input['no'])
 	{
 		if($fid)
@@ -600,10 +600,10 @@ elseif($mybb->input['action'] == "do_delete")
 			flash_message($lang->invalid_post_verify_key2, 'error');
 			admin_redirect("index.php?module=user-customuserperms");
 		}
-		
+
 		$query = $db->simple_select("customuserperms", "uid, customperms", "cupid = '{$cupid}'");
 		$customuserperms = $db->fetch_array($query);
-		
+
 		if(!$customuserperms['uid'])
 		{
 			flash_message($lang->customuserperms_invalid, 'error');
@@ -614,21 +614,21 @@ elseif($mybb->input['action'] == "do_delete")
 			$uid = intval($customuserperms['uid']);
 			$user = get_user($uid);
 			$username = $user['username'];
-			
+
 			if($fid)
 			{
 				$forum = get_forum($fid);
-				
+
 				$customperms = $customuserperms['customperms'];
 				$customperms = unserialize($customperms);
 				unset($customperms['forums'][$fid]);
 				$customperms = serialize($customperms);
-				
+
 				$update = array(
 					"customperms" => $db->escape_string($customperms)
 				);
 				$db->update_query("customuserperms", $update, "cupid = '{$cupid}'");
-				
+
 				flash_message($lang->sprintf($lang->customuserperms_deleted_forum, $username, $forum['name']), 'success');
 				admin_redirect("index.php?module=user-customuserperms&action=edit&do=forums&cupid={$cupid}");
 			}
@@ -639,7 +639,7 @@ elseif($mybb->input['action'] == "do_delete")
 					"hascustomperms" => 0
 				);
 				$db->update_query("users", $update, "uid = '{$uid}'");
-				
+
 				flash_message($lang->sprintf($lang->customuserperms_deleted, $username), 'success');
 				admin_redirect("index.php?module=user-customuserperms");
 			}
@@ -658,7 +658,7 @@ elseif($mybb->input['action'] == "delete")
 		$fid = "";
 		$message = $lang->customuserperms_delete;
 	}
-	
+
 	$page->output_confirm_action("index.php?module=user-customuserperms&action=do_delete&cupid={$mybb->input['cupid']}{$fid}&my_post_key={$mybb->post_code}", $message);
 }
 elseif($mybb->input['action'] == "status")
@@ -668,9 +668,9 @@ elseif($mybb->input['action'] == "status")
 		flash_message($lang->invalid_post_verify_key2, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	$cupid = intval($mybb->input['cupid']);
-	
+
 	$query = $db->write_query("
 		SELECT p.active, u.username, u.uid
 		FROM " . TABLE_PREFIX . "customuserperms p
@@ -678,15 +678,15 @@ elseif($mybb->input['action'] == "status")
 		ON p.uid = u.uid
 		WHERE p.cupid = '{$cupid}'
 	");
-	
+
 	if($db->num_rows($query) == 0)
 	{
 		flash_message($lang->customuserperms_invalid, 'error');
 		admin_redirect("index.php?module=user-customuserperms");
 	}
-	
+
 	$perm = $db->fetch_array($query);
-	
+
 	if($perm['active'] == 1)
 	{
 		$active = 0;
@@ -697,33 +697,33 @@ elseif($mybb->input['action'] == "status")
 		$active = 1;
 		$flash_message = $lang->sprintf($lang->custom_user_perms_activated, $perm['username']);
 	}
-	
+
 	$update = array(
 		"active" => $active
 	);
 	$db->update_query("customuserperms", $update, "cupid = '{$cupid}'");
-	
+
 	$update = array(
 		"hascustomperms" => $active
 	);
 	$db->update_query("users", $update, "uid = '" . intval($perm['uid']) . "'");
-	
+
 	flash_message($flash_message, 'success');
 	admin_redirect("index.php?module=user-customuserperms");
 }
 else
 {
 	$page->output_header($lang->customuserperms);
-	
+
 	$sub_tabs = array();
 	$sub_tabs['customuserperms'] = array(
 		'title' => $lang->customuserperms,
 		'link' => "index.php?module=user-customuserperms",
 		'description' => $lang->customuserperms_nav
 	);
-	
+
 	$page->output_nav_tabs($sub_tabs, "customuserperms");
-	
+
 	$query = $db->write_query("
 		SELECT p.*, u.username
 		FROM " . TABLE_PREFIX . "customuserperms p
@@ -735,11 +735,11 @@ else
 	if($db->num_rows($query) > 0)
 	{
 		$table = new Table;
-		
+
 		$table->construct_header($lang->username);
 		$table->construct_header($lang->custom_perms_overview);
 		$table->construct_header($lang->controls, array("colspan" => 3, 'class' => 'align_center'));
-		
+
 		while($perm = $db->fetch_array($query))
 		{
 			if($perm['active'] == 1)
@@ -750,7 +750,7 @@ else
 			{
 				$status = $lang->activate;
 			}
-			
+
 			$customperms = unserialize($perm['customperms']);
 			$custom_perms_overview = "";
 			if(!empty($customperms['general']))
@@ -784,7 +784,7 @@ else
 			{
 				$custom_perms_overview = $lang->none;
 			}
-			
+
 			$table->construct_cell($perm['username'], array('width' => '20%'));
 			$table->construct_cell($custom_perms_overview, array('width' => '35%'));
 			$table->construct_cell("<a href=\"index.php?module=user-customuserperms&amp;action=edit&amp;cupid={$perm['cupid']}\">{$lang->view_edit}</a>", array('class' => 'align_center', 'width' => '15%'));
@@ -792,16 +792,16 @@ else
 			$table->construct_cell("<a href=\"index.php?module=user-customuserperms&amp;action=delete&amp;cupid={$perm['cupid']}\">{$lang->delete}</a>", array('class' => 'align_center', 'width' => '15%'));
 			$table->construct_row();
 		}
-		
+
 		$table->output($lang->customuserperms_current);
 	}
-	
+
 	$form = new Form("index.php?module=user-customuserperms&amp;action=do_add_user", "post");
 	$form_container = new FormContainer($lang->customuserperms_add_user);
-	
+
 	$customuserperms_add_user_name = $form->generate_text_box("username", '', array('id' => 'username'));
 	$form_container->output_row($lang->username . " <em>*</em>", '', $customuserperms_add_user_name);
-	
+
 	$form_container->end();
 
 	// Autocompletion for usernames
@@ -855,13 +855,13 @@ else
 		// -->
 		</script>';
 	}
-	
+
 	$buttons[] = $form->generate_submit_button($lang->submit);
 	$form->output_submit_wrapper($buttons);
 	$form->end();
-	
+
 	echo "<br />";
-	
+
 	echo "<fieldset>
 	<legend>{$lang->customuserperms_explained}</legend>
 	<dl>
@@ -885,7 +885,7 @@ else
 		</dd>
 	</dl>
 </fieldset>";
-	
+
 	$page->output_footer();
 }
 
@@ -935,7 +935,7 @@ function should_add_customperms($perms, $perm, $value)
 function reorder_forums($perms)
 {
 	global $cache;
-	
+
 	$ordered_perms = array();
 	$forums = array_keys($cache->read("forums"));
 	if(array_key_exists(-1, $perms))
@@ -949,14 +949,14 @@ function reorder_forums($perms)
 			$ordered_perms[$forum] = $perms[$forum];
 		}
 	}
-	
+
 	return $ordered_perms;
 }
 
 function generate_permissions($permissions, $user_perms)
 {
 	global $lang, $form, $form_container;
-	
+
 	$done_groups = 0;
 	foreach($permissions as $group => $perms)
 	{
@@ -981,7 +981,7 @@ function generate_permissions($permissions, $user_perms)
 				$description = $info['lang'] . "_desc";
 				$info['description'] = "<br /><small class=\"input\">" . $lang->$description . "</small> ";
 			}
-			$form_container->output_cell($lang->$info['lang'] . $info['description']);
+			$form_container->output_cell($lang->{$info['lang']} . $info['description']);
 			$form_container->output_cell($form->generate_radio_button("perms[{$perm}]", -1, $lang->inherit, array("checked" => check_radio_button($user_perms, $perm, -1))), array("class" => "align_center"));
 			if($info['type'] == "yesno")
 			{
@@ -1001,7 +1001,7 @@ function generate_permissions($permissions, $user_perms)
 function customuserperms_delete_forum_perms($cupid, $forum)
 {
 	global $db;
-	
+
 	$query = $db->simple_select('customuserperms', '*', 'cupid = \''.$db->escape_string($cupid).'\'');
 	$perms = $db->fetch_array($query);
 	$customperms = unserialize($perms['customperms']);
